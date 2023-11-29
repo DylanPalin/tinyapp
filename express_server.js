@@ -1,3 +1,4 @@
+const e = require("express");
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
@@ -28,17 +29,28 @@ app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
   const id = generateRandomString(); // Updates the urlDatabase object with the new shortURL-longURL pair
   urlDatabase[id] = req.body.longURL;
-  res.redirect(`/u/${id}`); // Redirect to the new shortURL page
+  res.redirect(`/u/${id}`); 
 });
 
 app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id]; // Deletes the shortURL-longURL pair from the urlDatabase object
-  res.redirect("/urls"); // Redirects to the urls page
+  res.redirect("/urls"); 
+});
+
+app.post("/urls/:id/edit", (req, res) => {
+  const id = req.params.id;
+  if (urlDatabase[id]) {
+    const templateVars = { id: id, longURL: urlDatabase[id] };
+    res.render("urls_show", templateVars);
+  } else {
+    res.status(404).send("Error 404: Page not found");
+  }
+  res.redirect(`/u/${id}`); 
 });
 
 app.get("/urls/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id]; // Gets the longURL from the urlDatabase object
-  res.redirect(longURL); // Redirects to the longURL page
+  res.redirect(longURL); 
 });
 
 app.get("/urls/:id", (req, res) => {
