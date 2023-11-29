@@ -31,7 +31,12 @@ app.post("/urls", (req, res) => {
   res.redirect(`/u/${id}`); // Redirect to the new shortURL page
 });
 
-app.get("/u/:id", (req, res) => {
+app.post("/urls/:id/delete", (req, res) => {
+  delete urlDatabase[req.params.id]; // Deletes the shortURL-longURL pair from the urlDatabase object
+  res.redirect("/urls"); // Redirects to the urls page
+});
+
+app.get("/urls/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id]; // Gets the longURL from the urlDatabase object
   res.redirect(longURL); // Redirects to the longURL page
 });
