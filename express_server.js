@@ -30,6 +30,12 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+app.get("/urls/register", (req, res) => {
+  const username = req.cookies.username;
+  const templateVars = { username: username };  
+  res.render("urls_register", templateVars);
+});
+
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
   const id = generateRandomString(); // Updates the urlDatabase object with the new shortURL-longURL pair
