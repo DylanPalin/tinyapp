@@ -41,16 +41,24 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const userId = req.cookies.user_id;
   const user = users[userId];
-  const templateVars = { user: user };  
+  const templateVars = { user: user };
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/register", (req, res) => {
   const userId = req.cookies.user_id;
   const user = users[userId];
-  const templateVars = { user: user };  
+  const templateVars = { user: user };
   res.render("urls_register", templateVars);
 });
+
+app.get("/login", (req, res) => {
+  const userId = req.cookies.user_id;
+  const user = users[userId];
+  const templateVars = { user: user };
+  res.render("urls_login", templateVars);
+});
+
 
 app.post("/urls/register", (req, res) => {
   const id = generateRandomString();
@@ -79,12 +87,12 @@ app.post("/urls", (req, res) => {
   const userId = req.cookies.user_id;
   const user = users[userId];
   const templateVars = { id: id, longURL: urlDatabase[id], user: user };
-  res.render("urls_show", templateVars); 
+  res.render("urls_show", templateVars);
 });
 
 app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id]; // Deletes the shortURL-longURL pair from the urlDatabase object
-  res.redirect("/urls"); 
+  res.redirect("/urls");
 });
 
 app.post("/urls/:id/edit", (req, res) => {
@@ -97,18 +105,31 @@ app.post("/urls/:id/edit", (req, res) => {
   } else {
     res.status(404).send("Error 404: Page not found");
   }
-  res.redirect(`/u/${id}`); 
+  res.redirect(`/u/${id}`);
 });
 
 app.post('/login', (req, res) => {
-  const userId = req.cookies.user_id;
-  if (userId && users[userId]) {
+  const email = req.body.email; // Get email from user's input
+  const password = req.body.password; // Get password from user's input
+
+  let userExists = false;
+  let userId = null;
+
+  for (let userKey in users) {
+    const user = users[userKey];
+    if (user.email === email && user.password === password) {
+      userId = user.id;
+      userExists = true;
+      break;
+    }
+  }
+
+  if (userExists) {
+    res.cookie('user_id', userId);
     res.redirect("/urls");
   } else {
-    res.status(403).send("User not found");
+    res.status(401).send("Error 401: Invalid email or password");
   }
-  res.cookie('user_id', user.id);
-  res.redirect("/urls");
 });
 
 app.post('/logout', (req, res) => {
@@ -118,7 +139,7 @@ app.post('/logout', (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id]; // Gets the longURL from the urlDatabase object
-  res.redirect(longURL); 
+  res.redirect(longURL);
 });
 
 app.get("/urls/:id", (req, res) => {
