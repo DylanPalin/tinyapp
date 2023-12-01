@@ -32,29 +32,42 @@ function generateRandomString() {
 }
 
 app.get("/urls", (req, res) => {
-  const username = req.cookies.username;
-  const templateVars = { urls: urlDatabase, username: username };
+  const userId = req.cookies.user_id;
+  const user = users[userId];
+  const templateVars = { urls: urlDatabase, user: user };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  const username = req.cookies.username;
-  const templateVars = { username: username };  
+  const userId = req.cookies.user_id;
+  const user = users[userId];
+  const templateVars = { user: user };  
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/register", (req, res) => {
-  const username = req.cookies.username;
-  const templateVars = { username: username };  
+  const userId = req.cookies.user_id;
+  const user = users[userId];
+  const templateVars = { user: user };  
   res.render("urls_register", templateVars);
 });
 
 app.post("/urls/register", (req, res) => {
   const id = generateRandomString();
-  const username = req.body.email; // Set username & pass to user's input from form
+  const email = req.body.email; // Set email & pass to user's input from form
   const password = req.body.password;
-  const templateVars = { id: id, password: password, username: username };
+  const user = users[id];
+  const templateVars = { id: id, password: password, email: email };
   res.cookie('user_id', id); // Set cookie to user's id
+  if (email === "" || password === "") { // If email or password is empty, send 400 error
+    res.status(400).send("Error 400: email or password cannot be empty");
+  }
+  for (const user in users) { // If email already exists, send 400 error
+    if (users[user].email === email) {
+      res.status(400).send("Error 400: email already exists");
+    }
+  }
+  users[id] = templateVars; // Add new user to users object
   console.log(users);
   res.redirect("/urls"); // Redirect to homepage
 });
@@ -63,8 +76,9 @@ app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
   const id = generateRandomString(); // Updates the urlDatabase object with the new shortURL-longURL pair
   urlDatabase[id] = req.body.longURL;
-  const username = req.cookies.username;
-  const templateVars = { id: id, longURL: urlDatabase[id], username: username };
+  const userId = req.cookies.user_id;
+  const user = users[userId];
+  const templateVars = { id: id, longURL: urlDatabase[id], user: user };
   res.render("urls_show", templateVars); 
 });
 
@@ -76,8 +90,9 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/:id/edit", (req, res) => {
   const id = req.params.id;
   if (urlDatabase[id]) {
-    const username = req.cookies.username;
-    const templateVars = { id: id, longURL: urlDatabase[id], username: username };
+    const userId = req.cookies.user_id;
+    const user = users[userId];
+    const templateVars = { id: id, longURL: urlDatabase[id], user: user };
     res.render("urls_show", templateVars);
   } else {
     res.status(404).send("Error 404: Page not found");
@@ -86,13 +101,18 @@ app.post("/urls/:id/edit", (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  const username = req.body.username;
-  res.cookie('username', username);
+  const userId = req.cookies.user_id;
+  if (userId && users[userId]) {
+    res.redirect("/urls");
+  } else {
+    res.status(403).send("User not found");
+  }
+  res.cookie('user_id', user.id);
   res.redirect("/urls");
 });
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect("/urls");
 });
 
