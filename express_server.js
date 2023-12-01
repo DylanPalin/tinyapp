@@ -13,6 +13,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
 function generateRandomString() {
   const randomString = Math.random().toString(36).substring(2, 8);
   return randomString;
@@ -34,6 +47,16 @@ app.get("/urls/register", (req, res) => {
   const username = req.cookies.username;
   const templateVars = { username: username };  
   res.render("urls_register", templateVars);
+});
+
+app.post("/urls/register", (req, res) => {
+  const id = generateRandomString();
+  const username = req.body.email; // Set username & pass to user's input from form
+  const password = req.body.password;
+  const templateVars = { id: id, password: password, username: username };
+  res.cookie('user_id', id); // Set cookie to user's id
+  console.log(users);
+  res.redirect("/urls"); // Redirect to homepage
 });
 
 app.post("/urls", (req, res) => {
