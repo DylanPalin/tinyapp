@@ -129,7 +129,7 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/urls/:id/edit", (req, res) => {
-  const id = req.params.id;  
+  const id = req.params.id;
   const newUrl = req.body.longURL;
   if (!users[req.session.user_id]) {
     res.status(403).send("Error 403: You are not authorized to edit this URL");
@@ -138,8 +138,8 @@ app.post("/urls/:id/edit", (req, res) => {
     return res.status(404).send("Error 404: Page not found");
   }
 
-    urlDatabase[id].longURL = newUrl;
-    res.redirect(`/urls`);
+  urlDatabase[id].longURL = newUrl;
+  res.redirect(`/urls`);
 });
 
 app.post('/login', (req, res) => {
