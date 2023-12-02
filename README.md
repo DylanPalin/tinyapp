@@ -6,7 +6,7 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 !["screenshot description"](https://github.com/DylanPalin/tinyapp/blob/main/docs/Screenshot%202023-12-02%20032735222.png?raw=true)
 !["screenshot description"](https://github.com/DylanPalin/tinyapp/blob/main/docs/22.png?raw=true)
-!["screenshot description"](https://github.com/DylanPalin/tinyapp/blob/main/docs/22.png?raw=true)
+!["screenshot description"](https://github.com/DylanPalin/tinyapp/blob/main/docs/Screenshot%202023-12-02%2003265522.png?raw=true)
 
 
 ## Dependencies
