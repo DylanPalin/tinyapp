@@ -32,6 +32,9 @@ function generateRandomString() {
 }
 
 app.get("/urls", (req, res) => {
+  if (users[req.cookies.user_id] === undefined) {
+    res.redirect("/login");
+  }
   const userId = req.cookies.user_id;
   const user = users[userId];
   const templateVars = { urls: urlDatabase, user: user };
@@ -39,6 +42,9 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
+  if (users[req.cookies.user_id] === undefined) {
+    res.redirect("/login");
+  }
   const userId = req.cookies.user_id;
   const user = users[userId];
   const templateVars = { user: user };
@@ -91,11 +97,17 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id/delete", (req, res) => {
+  if (users[req.cookies.user_id] === undefined) {
+    res.status(403).send("Error 403: You are not authorized to delete this URL");
+  }
   delete urlDatabase[req.params.id]; // Deletes the shortURL-longURL pair from the urlDatabase object
   res.redirect("/urls");
 });
 
 app.post("/urls/:id/edit", (req, res) => {
+  if (users[req.cookies.user_id] === undefined) {
+    res.status(403).send("Error 403: You are not authorized to edit this URL");
+  }
   const id = req.params.id;
   if (urlDatabase[id]) {
     const userId = req.cookies.user_id;
@@ -128,13 +140,13 @@ app.post('/login', (req, res) => {
     res.cookie('user_id', userId);
     res.redirect("/urls");
   } else {
-    res.status(401).send("Error 401: Invalid email or password");
+    res.status(403).send("Error 403: Invalid email or password");
   }
 });
 
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 app.get("/urls/:id", (req, res) => {

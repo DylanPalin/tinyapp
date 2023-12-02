@@ -8,21 +8,34 @@
 
 </head>
 
-<body> <%- include('partials/_header') %>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
-    </head>
-    <div class="card-header"></div>
-    <h2>Login</h2>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <body>
-      <form method="POST" action="/login">
-        <input type="email" name="email" placeholder="E-mail" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <button type="submit">Login</button>
-      </form>
-    </body>
+<body>
+  <%- include('partials/_header') %>
+    <div style="padding: 20px">
+      <h1>Login</h1>
+
+      <body>
+        <style>
+          .form-element {
+            margin-bottom: 12px;
+          }
+        </style>
+        <form method="POST" action="/login">
+          <p class="card-text" style="font-size: 24px; width: 300px;">
+            Email Address
+          </p>
+          <input type="email" name="email" placeholder="Enter e-mail" required class="form-element">
+          <p class="card-text" style="font-size: 24px; width: 300px;">
+            Password
+          </p>
+          <input type="password" name="password" placeholder="Password" required class="form-element">
+          <div class="form-element"></div>
+          <button class="btn btn-primary" style="font-size: 19px;" type="submit">Login</button>
+    </div>
+    </form>
+</body>
 </body>
 
 </html>
