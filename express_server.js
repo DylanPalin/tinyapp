@@ -52,6 +52,9 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/register", (req, res) => {
+  if (users[req.cookies.user_id] !== undefined) {
+    res.redirect("/urls");
+  }
   const userId = req.cookies.user_id;
   const user = users[userId];
   const templateVars = { user: user };
@@ -74,11 +77,11 @@ app.post("/urls/register", (req, res) => {
   const templateVars = { id: id, password: password, email: email };
   res.cookie('user_id', id); // Set cookie to user's id
   if (email === "" || password === "") { // If email or password is empty, send 400 error
-    res.status(400).send("Error 400: email or password cannot be empty");
+    res.status(403).send("Error 403: email or password cannot be empty");
   }
   for (const user in users) { // If email already exists, send 400 error
     if (users[user].email === email) {
-      res.status(400).send("Error 400: email already exists");
+      res.status(403).send("Error 403: email already exists");
     }
   }
   users[id] = templateVars; // Add new user to users object
