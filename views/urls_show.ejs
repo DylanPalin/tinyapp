@@ -15,15 +15,15 @@
       <h2>URL Details</h2>
     </div>
     <div class="card-body">
-      <h5 class="card-title">TinyURL for: <%= longURL %>
-      </h5>
-      <p class="card-text">
+      <h4 class="card-title">TinyURL for: <%= longURL %>
+      </h4>
+      <p class="card-text" style="font-size: x-large;">
         Short URL ID: <a href="/u/<%= id %>">
           <%= id %>
         </a>
       <form method="POST" action="/urls/<%= id %>/edit">
         <input type="text" name="longURL" value="<%= longURL %>" required>
-        <button type="submit">Edit</button>
+        <button class="btn-primary" type="submit">Edit</button>
       </form>
       </p>
     </div>
