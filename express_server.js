@@ -24,6 +24,11 @@ const users = {
     email: "user2@example.com",
     password: "dishwasher-funk",
   },
+  dylan: {
+    id: "dylan",
+    email: "dyl@gml.com",
+    password: "123"
+  },
 };
 
 function generateRandomString() {
@@ -32,9 +37,6 @@ function generateRandomString() {
 }
 
 app.get("/urls", (req, res) => {
-  if (users[req.cookies.user_id] === undefined) {
-    res.redirect("/login");
-  }
   const userId = req.cookies.user_id;
   const user = users[userId];
   const templateVars = { urls: urlDatabase, user: user };
@@ -62,6 +64,9 @@ app.get("/urls/register", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
+  if (users[req.cookies.user_id] !== undefined) {
+    res.redirect("/urls");
+  }
   const userId = req.cookies.user_id;
   const user = users[userId];
   const templateVars = { user: user };
