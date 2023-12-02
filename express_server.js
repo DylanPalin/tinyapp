@@ -1,6 +1,7 @@
 const express = require("express");
 const cookieSession = require("cookie-session");
 const bcrypt = require('bcryptjs');
+const { getUserbyEmail, generateRandomString } = require('./helpers');
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -43,11 +44,6 @@ const users = {
     email: 'dyl@gml.com',
   }
 };
-
-function generateRandomString() {
-  const randomString = Math.random().toString(36).substring(2, 8);
-  return randomString;
-}
 
 app.get("/urls", (req, res) => {
   const userId = req.session.user_id;
@@ -94,23 +90,22 @@ app.get("/login", (req, res) => {
 
 
 app.post("/urls/register", (req, res) => {
-  const id = generateRandomString();
+
   const email = req.body.email; // Set email & pass to user's input from form
   const password = req.body.password;
-  if (email === "" || password === "") { // If email or password is empty, send 403 error
-    res.status(403).send("Error 403: email or password cannot be empty");
-    return;
+
+  if (!email || !password) { // If email or password is empty, send 403 error
+    return res.status(403).send("Error 403: email or password cannot be empty");
   }
-  for (const userId in users) { // If email already exists, send 403 error
-    const user = users[userId];
-    if (user.email === email) {
-      res.status(403).send("Error 403: email already exists");
-      return;
-    }
+  const user = getUserbyEmail(email, users);
+  if (user) {
+    return res.status(403).send("Error 403: email already exists");
   }
+  const userId = generateRandomString();
   const hashedPassword = bcrypt.hashSync(password, 10);
-  const templateVars = { id: id, password: hashedPassword, email: email };
-  users[id] = templateVars; // Add new user to users object
+  users[userId] = { id: userId, email: email, password: hashedPassword };
+
+  req.session.user_id = userId;
   console.log(users);
   res.redirect("/urls"); // Redirect to homepage
 });
