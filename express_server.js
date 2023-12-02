@@ -1,5 +1,5 @@
 const express = require("express");
-const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const bcrypt = require('bcryptjs');
 
 const app = express();
@@ -7,7 +7,10 @@ const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2']
+}));
 
 const urlDatabase = {
   "b2xVn2": {
@@ -18,13 +21,26 @@ const urlDatabase = {
     longURL: "http://www.google.com",
     userID: "c8ia2g",
   },
+  "bf0h9G": {
+    longURL: "http://www.soundcloud.com",
+    userID: "qq4wzd",
+  },
+  "9dV54K": {
+    longURL: "http://www.beatport.com",
+    userID: "qq4wzd",
+  },
 };
 
 const users = {
   'c8ia2g': {
     id: 'c8ia2g',
     password: '$2a$10$Pq6sKG1lJSVx9e2vQTobZeZKOH4Nrk3fTHjGwtN/HzEIJlCfGR/YK',
-    email: 'yo@hi.com'
+    email: 'yo@hi.com',
+  },
+  'qq4wzd': {
+    id: 'qq4wzd',
+    password: '$2a$10$LgkUPk0R4qPtVism3xzT1..ANYP1TcLK6xJwbiCNDKRUe0SYA3Xjq',
+    email: 'dyl@gml.com',
   }
 };
 
@@ -34,7 +50,7 @@ function generateRandomString() {
 }
 
 app.get("/urls", (req, res) => {
-  const userId = req.cookies.user_id;
+  const userId = req.session.user_id;
   const user = users[userId];
   let userUrls = {};
   for (let id in urlDatabase) {
@@ -47,30 +63,30 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  if (users[req.cookies.user_id] === undefined) {
+  if (users[req.session.user_id] === undefined) {
     res.redirect("/login");
   }
-  const userId = req.cookies.user_id;
+  const userId = req.session.user_id;
   const user = users[userId];
   const templateVars = { user: user };
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/register", (req, res) => {
-  if (users[req.cookies.user_id] !== undefined) {
+  if (users[req.session.user_id] !== undefined) {
     res.redirect("/urls");
   }
-  const userId = req.cookies.user_id;
+  const userId = req.session.user_id;
   const user = users[userId];
   const templateVars = { user: user };
   res.render("urls_register", templateVars);
 });
 
 app.get("/login", (req, res) => {
-  if (users[req.cookies.user_id] !== undefined) {
+  if (users[req.session.user_id] !== undefined) {
     res.redirect("/urls");
   }
-  const userId = req.cookies.user_id;
+  const userId = req.session.user_id;
   const user = users[userId];
   const templateVars = { user: user };
   res.render("urls_login", templateVars);
@@ -81,17 +97,19 @@ app.post("/urls/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body.email; // Set email & pass to user's input from form
   const password = req.body.password;
-  const hashedPassword = bcrypt.hashSync(password, 10);
-  const templateVars = { id: id, password: hashedPassword, email: email };
-  res.cookie('user_id', id); // Set cookie to user's id
   if (email === "" || password === "") { // If email or password is empty, send 403 error
     res.status(403).send("Error 403: email or password cannot be empty");
+    return;
   }
-  for (const user in users) { // If email already exists, send 403 error
-    if (users[user].email === email) {
+  for (const userId in users) { // If email already exists, send 403 error
+    const user = users[userId];
+    if (user.email === email) {
       res.status(403).send("Error 403: email already exists");
+      return;
     }
   }
+  const hashedPassword = bcrypt.hashSync(password, 10);
+  const templateVars = { id: id, password: hashedPassword, email: email };
   users[id] = templateVars; // Add new user to users object
   console.log(users);
   res.redirect("/urls"); // Redirect to homepage
@@ -100,15 +118,15 @@ app.post("/urls/register", (req, res) => {
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
   const id = generateRandomString(); // Updates the urlDatabase object with the new shortURL-longURL pair
-  urlDatabase[id] = { longURL: req.body.longURL, userID: req.cookies.user_id };
-  const userId = req.cookies.user_id;
+  urlDatabase[id] = { longURL: req.body.longURL, userID: req.session.user_id };
+  const userId = req.session.user_id;
   const user = users[userId];
   const templateVars = { id: id, longURL: urlDatabase[id].longURL, user: user };
   res.render("urls_show", templateVars);
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  if (users[req.cookies.user_id] === undefined) {
+  if (users[req.session.user_id] === undefined) {
     res.status(403).send("Error 403: You are not authorized to delete this URL");
   }
   delete urlDatabase[req.params.id]; // Deletes the shortURL-longURL pair from the urlDatabase object
@@ -116,12 +134,12 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/urls/:id/edit", (req, res) => {
-  if (users[req.cookies.user_id] === undefined) {
+  if (users[req.session.user_id] === undefined) {
     res.status(403).send("Error 403: You are not authorized to edit this URL");
   }
   const id = req.params.id;
   if (urlDatabase[id]) {
-    const userId = req.cookies.user_id;
+    const userId = req.session.user_id;
     const user = users[userId];
     const templateVars = { id: id, longURL: urlDatabase[id], user: user };
     res.render("urls_show", templateVars);
@@ -147,7 +165,7 @@ app.post('/login', (req, res) => {
   }
 
   if (userExists) {
-    res.cookie('user_id', userId);
+    req.session.user_id = userId;
     console.log(users);
     res.redirect("/urls");
   } else {
@@ -156,7 +174,7 @@ app.post('/login', (req, res) => {
 });
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id');
+  delete req.session.user_id;
   res.redirect("/login");
 });
 
