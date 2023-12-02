@@ -32,7 +32,7 @@
                 <%= urls[id] %>
               </td>
               <td>
-                <form style="display: inline-block;" method="POST" action="/urls/<%= id %>/edit">
+                <form style="display: inline-block;" method="GET" action="/urls/<%= id %>/edit">
                   <button type="submit">Edit</button>
                 </form>
                 <form style="display: inline-block;" method="POST" action="/urls/<%= id %>/delete">

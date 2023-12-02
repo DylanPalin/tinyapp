@@ -1,7 +1,7 @@
 const express = require("express");
 const cookieSession = require("cookie-session");
 const bcrypt = require('bcryptjs');
-const { getUserbyEmail, generateRandomString } = require('./helpers');
+const { getUserByEmail, generateRandomString } = require('./helpers');
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -97,7 +97,7 @@ app.post("/urls/register", (req, res) => {
   if (!email || !password) { // If email or password is empty, send 403 error
     return res.status(403).send("Error 403: email or password cannot be empty");
   }
-  const user = getUserbyEmail(email, users);
+  const user = getUserByEmail(email, users);
   if (user) {
     return res.status(403).send("Error 403: email already exists");
   }
@@ -121,7 +121,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  if (users[req.session.user_id] === undefined) {
+  if (!users[req.session.user_id]) {
     res.status(403).send("Error 403: You are not authorized to delete this URL");
   }
   delete urlDatabase[req.params.id]; // Deletes the shortURL-longURL pair from the urlDatabase object
@@ -129,19 +129,17 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/urls/:id/edit", (req, res) => {
-  if (users[req.session.user_id] === undefined) {
+  const id = req.params.id;  
+  const newUrl = req.body.longURL;
+  if (!users[req.session.user_id]) {
     res.status(403).send("Error 403: You are not authorized to edit this URL");
   }
-  const id = req.params.id;
-  if (urlDatabase[id]) {
-    const userId = req.session.user_id;
-    const user = users[userId];
-    const templateVars = { id: id, longURL: urlDatabase[id], user: user };
-    res.render("urls_show", templateVars);
-  } else {
-    res.status(404).send("Error 404: Page not found");
+  if (!urlDatabase[id]) {
+    return res.status(404).send("Error 404: Page not found");
   }
-  res.redirect(`/u/${id}`);
+
+    urlDatabase[id].longURL = newUrl;
+    res.redirect(`/urls`);
 });
 
 app.post('/login', (req, res) => {
@@ -184,6 +182,17 @@ app.get("/urls/:id", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
+  res.render("urls_show", templateVars);
+});
+
+app.get("/urls/:id/edit", (req, res) => {
+  const id = req.params.id;
+
+  if (!urlDatabase[id]) {
+    return res.status(404).send("Error 404: URL not found");
+  }
+
+  const templateVars = { id: id, longURL: urlDatabase[id].longURL, user: users[req.session.user_id] };
   res.render("urls_show", templateVars);
 });
 
