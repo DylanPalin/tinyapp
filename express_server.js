@@ -118,11 +118,13 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id/delete", (req, res) => {
+  const userId = req.session.user_id;  
   const user = users[userId];  
-  if (!isLoggedIn(users[req.session.user_id])) {
+  const id = req.params.id;
+  if (userId !== urlDatabase[id].userID) {
     return res.status(403).send("Error 403: You are not authorized to delete this URL");
   }
-  const userId = req.session.user_id; 
+
   delete urlDatabase[req.params.id]; // Deletes the shortURL-longURL pair from the urlDatabase object
   res.redirect("/urls");
 });
