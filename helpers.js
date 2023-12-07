@@ -13,4 +13,23 @@ function generateRandomString() {
   return randomString;
 }
 
-module.exports = { getUserByEmail, generateRandomString };
+function getUserUrls(userId, database) {
+  let userUrls = {};
+  for (let urlId in database) {
+    if (database[urlId].userID === userId) {
+      userUrls[urlId] = database[urlId];
+    }
+  }
+  return userUrls;
+}
+
+function isLoggedIn(user) {
+  
+  if (!user) {
+    return false;
+  }
+  return true;
+  };
+
+
+module.exports = { getUserByEmail, generateRandomString, getUserUrls, isLoggedIn };
