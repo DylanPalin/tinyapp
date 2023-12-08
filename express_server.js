@@ -106,13 +106,13 @@ app.post("/urls/register", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  const user = users[userId];  
+  const userId = req.session.user_id;   
+  const user = users[userId];
   if (!isLoggedIn(users[req.session.user_id])) {
     return res.status(403).send("Error 403: Please login to create a new URL");
   }  
   const id = generateRandomString(); // Updates the urlDatabase object with the new shortURL-longURL pair
   urlDatabase[id] = { longURL: req.body.longURL, userID: req.session.user_id };
-  const userId = req.session.user_id;
   const templateVars = { id: id, longURL: urlDatabase[id].longURL, user: user };
   res.render("urls_show", templateVars);
 });
