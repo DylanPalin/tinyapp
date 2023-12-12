@@ -68,7 +68,6 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-
 app.get("/urls/register", (req, res) => {
   const userId = req.session.user_id;
   const user = users[userId];
@@ -87,10 +86,11 @@ app.get("/login", (req, res) => {
   if (!isLoggedIn(user)) {
     res.render("urls_login", templateVars);
   } else {
-    res.redirect("/urls");
-  }
-});
+    return res.status(403).send("Error 403: You're already logged in");
 
+  }
+  res.redirect("/urls");
+});
 
 app.post("/urls/register", (req, res) => {
   const email = req.body.email; // Set email & pass to user's input from form
@@ -151,7 +151,7 @@ app.post("/urls/:id/edit", (req, res) => {
 
 app.post('/login', (req, res) => {
   if (isLoggedIn(users[req.session.user_id])) {
-    return res.alert('You\'re already logged in!');
+    return res.status(403).send("Error 403: You're already logged in");
   }
   const email = req.body.email; // Get email from user's input
   const passwordInput = req.body.password; // Get password from user's input
@@ -183,21 +183,21 @@ app.post('/logout', (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-  const userId = req.session.user_id;
-  const user = users[userId];
   const id = req.params.id;
   if (!urlDatabase[id]) {
     console.log("Error 404: URL not found");
     return res.status(404).send("Error 404: URL not found");
   }
-  const templateVars = { id: id, longURL: urlDatabase[id].longURL, user: user };
-  res.render("urls_show", templateVars);
+  const longURL = urlDatabase[id].longURL;
+  res.redirect(longURL);
 });
 
 app.get("/urls/:id", (req, res) => {
   const userId = req.session.user_id;
   const user = users[userId];
   const id = req.params.id;
+  console.log("id", id);
+  console.log("urlDatabase", urlDatabase);
   if (!isLoggedIn(user)) {
     res.send(403, '<script>alert("Please login to view your URLs"); window.location.href="/login";</script>');;
     res.redirect("/login");
@@ -212,7 +212,6 @@ app.get("/urls/:id", (req, res) => {
   const templateVars = { id: id, longURL: urlDatabase[id].longURL, user: user };
   res.render("urls_show", templateVars);
 });
-
 
 app.get("/urls/:id/edit", (req, res) => {
   const userId = req.session.user_id;
