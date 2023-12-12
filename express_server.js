@@ -186,8 +186,20 @@ app.get("/u/:id", (req, res) => {
   const userId = req.session.user_id;
   const user = users[userId];
   const id = req.params.id;
+  if (!urlDatabase[id]) {
+    console.log("Error 404: URL not found");
+    return res.status(404).send("Error 404: URL not found");
+  }
+  const templateVars = { id: id, longURL: urlDatabase[id].longURL, user: user };
+  res.render("urls_show", templateVars);
+});
+
+app.get("/urls/:id", (req, res) => {
+  const userId = req.session.user_id;
+  const user = users[userId];
+  const id = req.params.id;
   if (!isLoggedIn(user)) {
-    res.send('<script>alert("Please login to view your URLs"); window.location.href="/login";</script>');;
+    res.send(403, '<script>alert("Please login to view your URLs"); window.location.href="/login";</script>');;
     res.redirect("/login");
   }
   if (!urlDatabase[id]) {
@@ -200,6 +212,7 @@ app.get("/u/:id", (req, res) => {
   const templateVars = { id: id, longURL: urlDatabase[id].longURL, user: user };
   res.render("urls_show", templateVars);
 });
+
 
 app.get("/urls/:id/edit", (req, res) => {
   const userId = req.session.user_id;
