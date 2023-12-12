@@ -48,6 +48,10 @@ const users = {
 app.get("/urls", (req, res) => {
   const userId = req.session.user_id;
   const user = users[userId];
+  if (!isLoggedIn(user)) {
+    res.send(403, '<script>alert("Please login to view your URLs"); window.location.href="/login";</script>');;
+    res.redirect("/login");
+  }
   const userUrls = getUserUrls(userId, urlDatabase);
   const templateVars = { urls: userUrls, user: user };
   res.render("urls_index", templateVars);
@@ -55,35 +59,35 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const userId = req.session.user_id;
-  const user = users[userId];  
+  const user = users[userId];
   if (!isLoggedIn(user)) {
     res.redirect("/login");
   } else {
-  const templateVars = { user: user };
-  res.render("urls_new", templateVars);
+    const templateVars = { user: user };
+    res.render("urls_new", templateVars);
   }
 });
 
 
 app.get("/urls/register", (req, res) => {
-  const userId = req.session.user_id;  
-  const user = users[userId];  
+  const userId = req.session.user_id;
+  const user = users[userId];
   if (isLoggedIn(user)) {
     res.redirect("/urls");
   } else {
-  const templateVars = { user: user };
-  res.render("urls_register", templateVars);
+    const templateVars = { user: user };
+    res.render("urls_register", templateVars);
   }
 });
 
 app.get("/login", (req, res) => {
-  const userId = req.session.user_id;   
-  const user = users[userId];  
+  const userId = req.session.user_id;
+  const user = users[userId];
   const templateVars = { user: user };
   if (!isLoggedIn(user)) {
-  res.render("urls_login", templateVars);
+    res.render("urls_login", templateVars);
   } else {
-  res.redirect("/urls");
+    res.redirect("/urls");
   }
 });
 
@@ -106,11 +110,11 @@ app.post("/urls/register", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  const userId = req.session.user_id;   
+  const userId = req.session.user_id;
   const user = users[userId];
   if (!isLoggedIn(users[req.session.user_id])) {
     return res.status(403).send("Error 403: Please login to create a new URL");
-  }  
+  }
   const id = generateRandomString(); // Updates the urlDatabase object with the new shortURL-longURL pair
   urlDatabase[id] = { longURL: req.body.longURL, userID: req.session.user_id };
   const templateVars = { id: id, longURL: urlDatabase[id].longURL, user: user };
@@ -118,8 +122,8 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  const userId = req.session.user_id;  
-  const user = users[userId];  
+  const userId = req.session.user_id;
+  const user = users[userId];
   const id = req.params.id;
   if (userId !== urlDatabase[id].userID) {
     return res.status(403).send("Error 403: You are not authorized to delete this URL");
@@ -131,7 +135,7 @@ app.post("/urls/:id/delete", (req, res) => {
 
 app.post("/urls/:id/edit", (req, res) => {
   const userId = req.session.user_id;
-  const user = users[userId];  
+  const user = users[userId];
   const id = req.params.id;
   if (userId !== urlDatabase[id].userID) {
     return res.status(403).send("Error 403: You are not authorized to edit this URL");
@@ -172,30 +176,43 @@ app.post('/login', (req, res) => {
 });
 
 app.post('/logout', (req, res) => {
-  delete req.session.user_id;
+  res.clearCookie('session');
+  res.clearCookie('session.sig');
+  req.session = null;
   res.redirect("/login");
 });
 
-app.get("/urls/:id", (req, res) => {
+app.get("/u/:id", (req, res) => {
   const userId = req.session.user_id;
   const user = users[userId];
   const id = req.params.id;
+  if (!isLoggedIn(user)) {
+    res.send('<script>alert("Please login to view your URLs"); window.location.href="/login";</script>');;
+    res.redirect("/login");
+  }
   if (!urlDatabase[id]) {
+    console.log("Error 404: URL not found");
     return res.status(404).send("Error 404: URL not found");
+  }
+  if ((userId !== urlDatabase[id].userID)) {
+    return res.status(403).send("Error 403: You are not authorized to view this URL");
   }
   const templateVars = { id: id, longURL: urlDatabase[id].longURL, user: user };
   res.render("urls_show", templateVars);
 });
 
 app.get("/urls/:id/edit", (req, res) => {
-  const userId = req.session.user_id;  
+  const userId = req.session.user_id;
   const user = users[userId];
-  if (!isLoggedIn(users[req.session.user_id])) {
-    return res.status(403).send("Error 403: You are not authorized to edit this URL");
-  }
-    const id = req.params.id;  
+  const id = req.params.id;
   if (!urlDatabase[id]) {
     return res.status(404).send("Error 404: URL not found");
+  }
+  if ((!isLoggedIn(users[req.session.user_id]))) {
+    return res.status(403).send("Error 403: You are not authorized to edit this URL");
+  }
+  if (userId !== urlDatabase[id].userID) {
+    return res.status(403).send("Error 403: You are not authorized to edit this URL");
   }
   const templateVars = { id: id, longURL: urlDatabase[id].longURL, user: users[req.session.user_id] };
   res.render("urls_show", templateVars);
